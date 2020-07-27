@@ -1,0 +1,29 @@
+<p><%= link_to "Printable Journal (PDF)", url_for(@journal.journal_pdf) %></p>
+
+<section>
+  <%= content_tag("button", 
+                  "£22",
+                  :class => "snipcart-add-item",
+                  :data => { 
+                    :"item-name" => @journal.name,
+                    :"item-id" => @journal.id,
+                    :"item-image" => rails_blob_url(@journal.journal_pdf_preview),
+                    :"item-url" => journals_verify_path(@journal),
+                    :"item-price" => @journal.price
+                  }) %>
+</section>
+
+<%= link_to(image_tag(@journal.journal_pdf_preview), rails_blob_path(@journal.journal_pdf_preview, disposition: "attachment")) %>
+
+
+<p>Name: <%= @journal.name %></p>
+<p>Font 1: <%= @journal.font_1 %></p>
+<p>Font 2: <%= @journal.font_2 %></p>
+<h3>Intentions</h3>
+<% @journal.intentions.each do |intention| %>
+  <p><%= intention %></p>
+<% end %>
+<%# <h3>Questions</h3> %>
+<%# <% @journal.questions.each do |question| %1> %>
+<%#   <p><%= question.intention_list %1> | <%= question.content %1></p> %>
+<%# <% end %1> %>

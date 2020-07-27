@@ -1,0 +1,19 @@
+<header class="header">
+  <div class="logo-container">
+    <%= link_to "dailypager", root_path, id: "logo" %>
+  </div>
+  <nav class="nav">
+    <ul>
+      <% if signed_in? %>
+        <li><%= button_to 'Sign out', sign_out_path, method: :delete %></li>
+      <% else %>
+        <li><%= button_to 'Sign In', sign_in_path, method: :get %></li>
+      <% end %>
+      <li><%= link_to 'FAQ', faq_path %></li>
+      <li><%= link_to 'Contact', contact_path %></li>
+      <% if signed_in? %>
+        <li><%= button_to 'Create My Journal', new_journal_path, method: :get %></li>
+      <% end %>
+      <ul>
+  </nav>
+</header>

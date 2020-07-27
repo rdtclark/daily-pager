@@ -1,0 +1,7 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+<% 50.times do |n| %>
+prompt_<%= n %>:
+  content: <%= "prompt_#{n}" %>
+<% end %>
+

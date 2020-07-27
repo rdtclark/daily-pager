@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= yield(:title) %> | DailyPager.com</title>
+    <title>DailyPager</title>
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>
+    <%= javascript_pack_tag 'application', 'data-turbolinks-track': 'reload' %>
+    <%= render 'layouts/shim' %>
+    <link rel="preconnect" href="https://app.snipcart.com">
+    <link rel="preconnect" href="https://cdn.snipcart.com">
+    <link rel="stylesheet" href="https://cdn.snipcart.com/themes/v3.0.15/default/snipcart.css" />
+  </head>
+
+  <body>
+    <div class="wrapper">
+      <div id="flash">
+        <% flash.each do |key, value| %>
+          <div class="flash <%= key %>"><%= value %></div>
+        <% end %>
+      </div>
+      <%= render 'layouts/header' %>
+      <main class="content">
+        <%= yield %>
+      </main>
+      <%= render 'layouts/footer' %>
+    </div>
+    <div hidden id="snipcart" data-api-key="MDhjNjk1MGYtZjY0OC00YzkwLWFjNzAtZjg4OWUwMGRjNjJmNjM3MjExOTc0MTA5NjYxMzk4"></div>
+    <%# <%= tag.div id: "snipcart", data: { :"api-key" => Rails.application.credentials.dig(:snipcart, :public_test_key)} %1> %>
+    <script src="https://cdn.snipcart.com/themes/v3.0.15/default/snipcart.js"></script>
+  </body>
+</html>

@@ -1,0 +1,17 @@
+
+
+<div data-status="<%= journals_status_path(@journal) %>">
+</div>
+
+
+<sharpening-pencils>
+  <div id="message-container">
+    <div id="message">
+      <h3>Sharpening Pencils...</h3>
+    </div>
+  </div>
+</sharpening-pencils>
+
+
+<%= content_tag :div, id: "preview-container", data: {url: journal_url(journal_id: @journal.id)} do %>
+<% end %>

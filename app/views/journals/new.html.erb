@@ -1,0 +1,18 @@
+<%= simple_form_for @journal do |f| %>
+  <%= f.input :name %>
+  <%= f.input :intentions, 
+  collection: Question.all_intentions, 
+  label: "Maximum of 5 intentions", 
+  input_html: { id: "select-intentions", multiple: true } %>
+
+<%= f.input :size, collection: Journal::PAGE_SIZES, label: "Page Size" %>
+<journal-fonts>
+  <%= f.input :font_1,
+  collection: Proc.new{ Journal::FONT_CHOICES.collect{|f| [f.humanize, f, item_wrapper_class: "#{f}"] } },
+  as: :radio_buttons %>
+<%= f.input :font_2,
+  collection: Proc.new{ Journal::FONT_CHOICES.collect{|f| [f.humanize, f, item_wrapper_class: "#{f}"] } },
+  as: :radio_buttons %>
+</journal-fonts>
+<%= f.button :submit %>
+  <% end %>

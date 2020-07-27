@@ -1,0 +1,18 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  user: one
+  processing: false
+  size: MyString
+  font_1: MyString
+  font_2: MyString
+
+two:
+  name: MyString
+  user: two
+  processing: false
+  size: MyString
+  font_1: MyString
+  font_2: MyString
+
