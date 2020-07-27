@@ -13,14 +13,7 @@ class GenerateJournal
     pdf = JournalTemplatePdf.new(journal)
     pdf.output_journal
 
-    # stream file method 
-    # ===
-    # io = StringIO.new pdf.render
-    # journal.journal_pdf.attach(io: io, 
-    #                            filename: "#{journal.size}_#{journal.name.gsub(/\s+/, "")}_#{journal.id}.pdf", 
-    #                            content_type: "application/pdf")
-
-    # Save to tmp file method
+    # Save to tmp file
     # ===
     source_file_name = "pdf_journal_#{(journal_id).to_s}"
     source_file_path = File.join(Dir.tmpdir, "#{source_file_name}-#{Time.now.strftime("%Y%m%d")}-#{$$}-#{rand(0x100000000).to_s(36)}-.pdf")
@@ -32,10 +25,7 @@ class GenerateJournal
     # Convert PDF with minimagick
     # ===
 
-    # Get path to PDF from journal model (only works on local filesystem not in production w/ S3)
-    # source_pdf_path = ActiveStorage::Blob.service.path_for(journal.journal_pdf.key)
-
-    # set filename to starting"journal_id"
+    # set filename to start with  "journal_id"
     destination_file_name = "journal_#{(journal_id).to_s}"
 
     # set path for tempfile that is about to be created
