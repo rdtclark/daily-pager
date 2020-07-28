@@ -1,5 +1,17 @@
-# Overview
+![Logo](readme/logo.png)
+
+# Basic Overview
+
 This repo is summary of the project including the most important building blocks.
+
+Create a customised printable journal based around up to 5 of your intentions for the year ahead, for example Stoicism, Gratitude & Simplicity.
+
+Using relevant quotes, prompts, questions and challenges a custom journal will be built around you.
+
+![Intentions](selecting_intentions.png)
+
+Daily pager allows you to create the perfect journal built around your intentions. I’ve heard of and tried all kinds of journals, but don’t want to be stuck to one methodology. Enter daily pager.
+Choose from a selection of intentions for your year ahead and your journal will be created for you. Including inspiring quotes, challenges, questions and prompts.
 
 # Live version
 
@@ -16,7 +28,6 @@ Hosted using Dokku with Digital Ocean VPS.
 
 # Database Diagram
 
-/database_diagram.png
 ![Database](database_diagram.png)
 
 ## Notable Gems
@@ -25,20 +36,11 @@ Hosted using Dokku with Digital Ocean VPS.
 - acts-as-taggable-array-on for fast tagging using postgresql array columns
 - clearance for authentication
 
-# Basic Overview
 
-Create a customised printable journal based around up to 5 of your intentions for the year ahead, for example Stoicism, Gratitude & Simplicity.
-
-Using relevant quotes, prompts, questions and challenges a custom journal will be built around you.
-
-[video gif demo]
-
-Daily pager allows you to create the perfect journal built around your intentions. I’ve heard of and tried all kinds of journals, but don’t want to be stuck to one methodology. Enter daily pager.
-Choose from a selection of intentions for your year ahead and your journal will be created for you. Including inspiring quotes, challenges, questions and prompts.
-
-### User Stories
+## User Stories
  
-## As a User
+### As a User
+
 - I want to signup
 - I want to create a journal PDF I can print at home
 - I want to download my Journal PDF
