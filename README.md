@@ -11,7 +11,7 @@ Postgresql
 
 # Database Diagram
 
-
+/database_diagram.png
 
 # Hosting
 Using Dokku and a Digital Ocean VPS
