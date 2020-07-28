@@ -22,36 +22,24 @@ Hosted on Digital Ocean with Dokkku.
 - Ruby on Rails 6
 - AWS S3 for PDF file storage in production
 - Postgresql
+- Redis (for background jobs)
 
 ## Notable Gems
 
 - prawn for pdf generation
 - pdf-inspector for testing PDF output
 - acts-as-taggable-array-on for fast tagging using postgresql array columns
+- mini-magick for in browser PDF previews
 - clearance for authentication
 
 ## Tests
 
-
+![Tests](readme/tests.png)
 
 ## Database Diagram
 
 ![Database](readme/database_diagram.png)
 
-## User Stories
- 
-### As a User
-
-- I want to signup
-- I want to create a journal PDF I can print at home
-- I want to download my Journal PDF
-- I want to create a journal PDF in two sizes "personal" and "A5"
-- I want to create a journal PDF based on up to 5 different intentions I have for the year ahead
-- I want each page of my journal PDF to be different
-- I want to customise the font of my journal PDF
-- I want to edit my intentions to create a new journal PDF
-- I want to save my created journal PDF on my account
-- I want to be able to buy printed journal pages ready to use
 
 ## Design Decisions
 
@@ -95,7 +83,110 @@ a hash of all the journal_quotes associations in one query.
 
 This was refactored from `journal_quotes.create!(journal: journal)` being called for each new association. 
 
+### Background Jobs
 
+Because creating the 183 page PDF can take some time, especially in prodcution when saving the Amazon S3,
+this is passed over to a background job using Sidekiq and Redis.
+
+During this job, here is a summary of what happens.
+
+1. Journal is found and the processing column is set to true
+2. All journal content is gathered and associated with the current Journal
+3. The Journal object is passed to JournalTemplatePdf class for PDF creation
+4. The resulting PDF is saved temporarily to the local filesystem
+5. The temporary PDF has a preview 2-page spread image created and also stored temporarily
+6. The temporary PDF and preview image are uploaded to Amazon S3 (temp files also deleted)
+7. Journal object is set to processing: false and saved
+
+This process takes about 4.5 seconds, and currently results in
+
+```ruby
+class GenerateJournal
+include Sidekiq::Worker
+sidekiq_options retry: :false
+
+def perform(journal_id)
+  journal = Journal.find(journal_id)
+  journal.update_column(:processing, true)
+  intentions = journal.intentions
+  Question.block(intentions, journal)
+  Prompt.block(intentions, journal)
+  Quote.block(intentions, journal)
+  Challenge.block(intentions, journal)
+  pdf = JournalTemplatePdf.new(journal)
+  pdf.output_journal
+
+  # Save to tmp file
+  # ===
+  source_file_name = "pdf_journal_#{(journal_id).to_s}"
+  source_file_path = File.join(Dir.tmpdir, "#{source_file_name}-#{Time.now.strftime("%Y%m%d")}-#{$$}-#{rand(0x100000000).to_s(36)}-.pdf")
+  pdf.render_file source_file_path
+  journal.journal_pdf.attach(io: File.open(source_file_path), 
+			     filename: "#{journal.size}_#{journal.name.gsub(/\s+/, "")}_#{journal.id}.pdf", 
+			     content_type: "application/pdf")
+
+  # Convert PDF with minimagick
+  # ===
+
+  # set filename to start with  "journal_id"
+  destination_file_name = "journal_#{(journal_id).to_s}"
+
+  # set path for tempfile that is about to be created
+  converted_file_path = File.join(Dir.tmpdir, "#{destination_file_name}-#{Time.now.strftime("%Y%m%d")}-#{$$}-#{rand(0x100000000).to_s(36)}-.png")
+
+  # Save first two pages as one PNG in landscape e.g (page 1 | page 2)
+  MiniMagick::Tool::Montage.new do |montage|
+
+    montage.density "300"
+    montage.quality "80"
+    montage.interlace "Plane"
+    montage.strip
+    montage.bordercolor "Black"
+    montage.border "1"
+    montage.geometry "600x+42+22"
+    montage.tile "2x"
+    montage.alpha "remove"
+
+    # Journal pdf to be converted
+    montage << "#{source_file_path}[0-3]"
+
+    # Destination of resulting PNG
+    montage << converted_file_path
+
+  end
+
+  # attach preview PNG using active storage
+  journal.journal_pdf_preview.attach(io: File.open(converted_file_path), filename: destination_file_name, content_type: "image/png")
+
+  # remove tempfile
+  FileUtils.rm(converted_file_path)
+  FileUtils.rm(source_file_path)
+
+  journal.update_column(:processing, false)
+  journal.save!
+end
+
+end
+```
+
+### Polling Background Job Completion
+
+### PDF Preview
+
+## User Stories
+ 
+### As a User
+
+- I want to signup
+- I want to create a journal PDF I can print at home
+- I want to download my Journal PDF
+- I want to create a journal PDF in two sizes "personal" and "A5"
+- I want to create a journal PDF based on up to 5 different intentions I have for the year ahead
+- I want each page of my journal PDF to be different
+- I want to customise the font of my journal PDF
+- I want to edit my intentions to create a new journal PDF
+- I want to save my created journal PDF on my account
+- I want to be able to buy printed journal pages ready to use
 
 
 
