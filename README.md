@@ -1,14 +1,12 @@
 <p align="center"><img src="readme/logo.png"></img></p>
 
-# Overview
+# DailyPager Walkthrough
 
-Daily pager allows you to create a journal based on your intentions for the year ahead. 
+> Create a journal based on your intentions for the year ahead. 
 
-I’d used all kinds of journals, but did’t want to be stuck to one methodology. So I made dailypager.
+I’d used all kinds of journals, but didn’t want to be stuck to one methodology. So I made dailypager.
 
-Choose from a selection of intentions for your year ahead and your journal will be created for you. Including inspiring quotes, challenges, questions and prompts.
-
-Using relevant quotes, prompts, questions and challenges a journal will be created.
+You can choose from a selection of intentions for the year ahead and a printable journal will be created for you. Including relevant quotes, challenges, questions and prompts.
 
 ![Intentions](readme/intentions_selector.gif)
 
@@ -19,21 +17,26 @@ Credential: demo@example.com / hello123
 
 Hosted on Digital Ocean with Dokkku.
 
-## Technology
+## Technology Used
 
 - Ruby on Rails 6
 - AWS S3 for PDF file storage in production
 - Postgresql
 
-## Database Diagram
-
-![Database](readme/database_diagram.png)
-
 ## Notable Gems
+
 - prawn for pdf generation
 - pdf-inspector for testing PDF output
 - acts-as-taggable-array-on for fast tagging using postgresql array columns
 - clearance for authentication
+
+## Tests
+
+
+
+## Database Diagram
+
+![Database](readme/database_diagram.png)
 
 ## User Stories
  
@@ -52,7 +55,7 @@ Hosted on Digital Ocean with Dokkku.
 
 ## Design Decisions
 
-The app is made from series many-to-many relationships to the main "Journal" class.
+The structure of the app is made from a series of many-to-many relationships to the main "Journal" class.
 
 As you can see in the database diagram. Each Journal has for example many "quotes" through the "journal_quotes" table.
 
@@ -78,15 +81,17 @@ def self.block(intentions, journal)
 end
 ```
 
-You can run this class method like so `Quote.block(["gratitude"], journal)` and it will manually create
+You can run this class method like so in the rails console `Quote.block(["gratitude"], journal)` and it will manually create
 the associations for a given journal.
 
 `random` above is actually a rails scope that calls `order(Arel::Nodes::NamedFunction.new('RANDOM', []))`.
-Which you can see when you look at the model in more detail [here](app/models/quote.rb). Retrieving 40 quotes per
-intentions passed.
+You can see this when you look at the model in more detail [here](app/models/quote.rb). Retrieving 40 quotes per
+intention passed.
 
-Also here you can see the `insert_all` method, which allows a drastic reduction on database queries here by passing
-a hash of all of associations in one call.
+### Avoiding N+1 Database Queries
+
+Also here you can see the `insert_all` method, which allows a drastic reduction on database queries by passing
+a hash of all the journal_quotes associations in one query.
 
 This was refactored from `journal_quotes.create!(journal: journal)` being called for each new association. 
 
