@@ -43,6 +43,18 @@ Hosted on Digital Ocean with Dokkku.
 
 ## Design Decisions
 
+### The Template Design Pattern
+
+The app uses the this design pattern to create a base PDF with the correct fonts, font_sizes and page size `TemplatePdf.rb`.
+
+Then when generating an actual Journal PDF, this inherits the template and creates the actual page content.
+
+This logic would extend nicely to make additional journal content in a modular way such as habit trackers or other optional extras.
+
+[Go here](pdfs/) to see how the PDFs are created using this.
+
+### Journal Content
+
 The structure of the app is made from a series of many-to-many relationships to the main "Journal" class.
 
 As you can see in the database diagram. Each Journal has for example many "quotes" through the "journal_quotes" table.
@@ -81,7 +93,16 @@ intention passed.
 Also here you can see the `insert_all` method, which allows a drastic reduction on database queries by passing
 a hash of all the journal_quotes associations in one query.
 
-This was refactored from `journal_quotes.create!(journal: journal)` being called for each new association. 
+This was refactored from `journal_quotes.create!(journal: journal)` being called for each new association.
+
+Also an in memory cache is used to store the journal content for later use when creating the PDF, you can see this logic
+inside the journal model for exammple. This also reduces database queries a great deal.
+
+```ruby
+def cached_quotes
+	Rails.cache.fetch([self, "journal_quotes"]) { quotes.to_a }
+end
+```
 
 ### Background Jobs
 
@@ -98,7 +119,7 @@ During this job, here is a summary of what happens.
 6. The temporary PDF and preview image are uploaded to Amazon S3 (temp files also deleted)
 7. Journal object is set to processing: false and saved
 
-This process takes about 4.5 seconds, and currently results in
+This process takes around 5.5 seconds.
 
 ```ruby
 class GenerateJournal
@@ -171,7 +192,81 @@ end
 
 ### Polling Background Job Completion
 
+One of the difficulties of handling the PDF creating in a background job was handling the UX of that.
+I chose to create a simple JQuery Poll to achieve this.
+
+This poll will try 4 times, each time increasing the timer by 1 second. For exampple 1sec, 2sec etc
+and finally after the 4th failed attempt it will show a timeout alert.
+
+Also during this time the user is given some relevant loading messages. You can see all of this logic inside
+the packs folder [here](app/javascript/packs/sharpening-pencils.js)
+
+```javascript
+var renderTimeoutMessage = function (){
+alert("timeout");
+// pull up an alert
+}
+
+
+$(document).on("turbolinks:load", function() {
+// $(document).ready(function() {
+var poll;
+var attempts = 0;
+poll = function(div, callback) {
+	return setTimeout(function() {
+		return $.get(div.data('status')).done(function(journal) {
+			if (journal.processing) {
+				if (attempts > 4){
+					renderTimeoutMessage();
+					return false;
+				} else {
+					attempts += 1;
+					return poll(div, callback);
+				}
+			} else {
+				return callback();
+			}
+		});
+	}, 1000 * (attempts + 1));
+};
+return $('[data-status]').each(function() {
+	var div;
+	div = $(this);
+	return poll(div, function() {
+		$("#message-container").hide()
+		$.getScript($('#preview-container').data("url"))
+	});
+});
+});
+```
+
+
 ### PDF Preview
+
+Inside the background job above you can see this section that takes the first 4 pages
+of the PDF and turns it into a 4 page spread, with borders and some optimisation.
+
+```ruby
+  MiniMagick::Tool::Montage.new do |montage|
+
+    montage.density "300"
+    montage.quality "80"
+    montage.interlace "Plane"
+    montage.strip
+    montage.bordercolor "Black"
+    montage.border "1"
+    montage.geometry "600x+42+22"
+    montage.tile "2x"
+    montage.alpha "remove"
+
+    # Journal pdf to be converted
+    montage << "#{source_file_path}[0-3]"
+
+    # Destination of resulting PNG
+    montage << converted_file_path
+
+  end
+```
 
 ## User Stories
  
@@ -187,9 +282,4 @@ end
 - I want to edit my intentions to create a new journal PDF
 - I want to save my created journal PDF on my account
 - I want to be able to buy printed journal pages ready to use
-
-
-
-
-
 
