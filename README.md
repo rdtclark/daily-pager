@@ -1,30 +1,31 @@
 <p align="center"><img src="readme/logo.png"></img></p>
 
-# Basic Overview
+# Overview
 
-Create a customised printable journal based around up to 5 of your intentions for the year ahead.
+Daily pager allows you to create a journal based on your intentions for the year ahead. 
 
-Using relevant quotes, prompts, questions and challenges a custom journal will be built around you.
+I’d used all kinds of journals, but did’t want to be stuck to one methodology. So I made dailypager.
+
+Choose from a selection of intentions for your year ahead and your journal will be created for you. Including inspiring quotes, challenges, questions and prompts.
+
+Using relevant quotes, prompts, questions and challenges a journal will be created.
 
 ![Intentions](readme/intentions_selector.gif)
 
-Daily pager allows you to create the perfect journal built around your intentions. I’ve heard of and tried all kinds of journals, but don’t want to be stuck to one methodology. Enter daily pager.
-Choose from a selection of intentions for your year ahead and your journal will be created for you. Including inspiring quotes, challenges, questions and prompts.
+## Live version
 
-# Live version
+https://www.dailypager.com
+Credential: demo@example.com / hello123
 
-https://www.dailypager.com/sign_up
-any email and password combination works e.g. hello@example.com / qwerty
+Hosted on Digital Ocean with Dokkku.
 
-Hosted using Dokku with Digital Ocean VPS.
-
-# Technology
+## Technology
 
 - Ruby on Rails 6
 - AWS S3 for PDF file storage in production
 - Postgresql
 
-# Database Diagram
+## Database Diagram
 
 ![Database](readme/database_diagram.png)
 
@@ -33,7 +34,6 @@ Hosted using Dokku with Digital Ocean VPS.
 - pdf-inspector for testing PDF output
 - acts-as-taggable-array-on for fast tagging using postgresql array columns
 - clearance for authentication
-
 
 ## User Stories
  
@@ -49,6 +49,51 @@ Hosted using Dokku with Digital Ocean VPS.
 - I want to edit my intentions to create a new journal PDF
 - I want to save my created journal PDF on my account
 - I want to be able to buy printed journal pages ready to use
+
+## Design Decisions
+
+The app is made from series many-to-many relationships to the main "Journal" class.
+
+As you can see in the database diagram. Each Journal has for example many "quotes" through the "journal_quotes" table.
+
+The "quotes" table contains 5,000 quotes tagged with various intentions such as "gratitude". When the user selects
+gratitude as an intention, the correct number of tagged quotes are selected at random and associated with that users journal.
+
+You can see that logic below from the Quote model.
+
+`
+# can take multiple intentions and create a question block
+# associated to the correct journal object
+def self.block(intentions, journal)
+  quotes_array = []
+  intentions.each do |intention|
+    quotes = self.with_any_intentions(intention).random.limit(40)
+    quotes.each do |quote|
+      q = { quote_id: quote.id, 
+		journal_id: journal.id,
+		created_at: Time.now,
+		updated_at: Time.now }
+      quotes_array << q
+    end
+  end
+  JournalQuote.insert_all(quotes_array)
+end
+`
+You can run this class method like so `Quote.block(["gratitude"], journal)` and it will manually create
+the associations for a given journal.
+
+`random` above is actually a rails scope that calls `order(Arel::Nodes::NamedFunction.new('RANDOM', []))`.
+Which you can see when you look at the model in more detail [here](app/models/quote.rb). Retrieving 40 quotes per
+intentions passed.
+
+Also here you can see the `insert_all` method, which allows a drastic reduction on database queries here by passing
+a hash of all of associations in one call.
+
+This was refactored from `journal_quotes.create!(journal: journal)` being called for each new association. 
+
+
+
+
 
 
 
