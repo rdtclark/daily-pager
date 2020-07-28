@@ -1,5 +1,8 @@
 ![Logo](readme/logo.png)
 
+
+<p align="center"><img src="readme/logo.png"></img></p>
+
 # Basic Overview
 
 This repo is summary of the project including the most important building blocks.
