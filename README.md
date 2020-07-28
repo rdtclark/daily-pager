@@ -61,9 +61,7 @@ gratitude as an intention, the correct number of tagged quotes are selected at r
 
 You can see that logic below from the Quote model.
 
-`
-# can take multiple intentions and create a question block
-# associated to the correct journal object
+```ruby
 def self.block(intentions, journal)
   quotes_array = []
   intentions.each do |intention|
@@ -78,7 +76,8 @@ def self.block(intentions, journal)
   end
   JournalQuote.insert_all(quotes_array)
 end
-`
+```
+
 You can run this class method like so `Quote.block(["gratitude"], journal)` and it will manually create
 the associations for a given journal.
 
