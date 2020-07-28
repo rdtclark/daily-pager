@@ -1,17 +1,12 @@
-![Logo](readme/logo.png)
-
-
 <p align="center"><img src="readme/logo.png"></img></p>
 
 # Basic Overview
 
-This repo is summary of the project including the most important building blocks.
-
-Create a customised printable journal based around up to 5 of your intentions for the year ahead, for example Stoicism, Gratitude & Simplicity.
+Create a customised printable journal based around up to 5 of your intentions for the year ahead.
 
 Using relevant quotes, prompts, questions and challenges a custom journal will be built around you.
 
-![Intentions](selecting_intentions.png)
+![Intentions](readme/intentions_picker.gif)
 
 Daily pager allows you to create the perfect journal built around your intentions. I’ve heard of and tried all kinds of journals, but don’t want to be stuck to one methodology. Enter daily pager.
 Choose from a selection of intentions for your year ahead and your journal will be created for you. Including inspiring quotes, challenges, questions and prompts.
@@ -31,7 +26,7 @@ Hosted using Dokku with Digital Ocean VPS.
 
 # Database Diagram
 
-![Database](database_diagram.png)
+![Database](readme/database_diagram.png)
 
 ## Notable Gems
 - prawn for pdf generation
