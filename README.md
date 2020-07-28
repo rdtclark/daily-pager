@@ -6,7 +6,7 @@ Create a customised printable journal based around up to 5 of your intentions fo
 
 Using relevant quotes, prompts, questions and challenges a custom journal will be built around you.
 
-![Intentions](readme/intentions_picker.gif)
+![Intentions](readme/intentions_selector.gif)
 
 Daily pager allows you to create the perfect journal built around your intentions. I’ve heard of and tried all kinds of journals, but don’t want to be stuck to one methodology. Enter daily pager.
 Choose from a selection of intentions for your year ahead and your journal will be created for you. Including inspiring quotes, challenges, questions and prompts.
