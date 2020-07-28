@@ -9,14 +9,18 @@ Ruby on Rails 6
 AWS S3 for PDF file storage in production
 Postgresql
 
+# Database Diagram
+
+
+
 # Hosting
 Using Dokku and a Digital Ocean VPS
 
-## Ruby Gems worth highlighting
+## Notable Gems
 - prawn for pdf generation
-- 
+- pdf-inspector for testing PDF output
+- acts-as-taggable-array-on for fast tagging using postgresql array columns
 - clearance for authentication
-- 
 
 # Basic Overview
 
