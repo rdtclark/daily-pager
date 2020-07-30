@@ -1,6 +1,6 @@
 <p align="center"><img src="readme/logo.png"></img></p>
 
-# DailyPager Walkthrough
+# Project Walkthrough
 
 > Create a journal based on your intentions for the year ahead. 
 
