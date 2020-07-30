@@ -4,35 +4,39 @@
 
 > Create a journal based on your intentions for the year ahead. 
 
-I’d used all kinds of journals, but didn’t want to be stuck to one methodology. So I made dailypager.
-
-You can choose from a selection of intentions for the year ahead and a printable journal will be created for you. Including relevant quotes, challenges, questions and prompts.
+Choose from a selection of intentions for the year ahead and a printable journal will be created for you based around them.
+Including relevant quotes, challenges, questions and prompts.
 
 ![Intentions](readme/intentions_selector.gif)
 
 ## Live version
 
 https://www.dailypager.com
-Credential: demo@example.com / hello123
+Login with: demo@example.com / hello123
 
-Hosted on Digital Ocean with Dokkku.
+Hosted on a Digital Ocean VPS using [Dokkku](http://dokku.viewdocs.io/dokku/).
 
 ## Technology Used
 
 - Ruby on Rails 6
 - AWS S3 for PDF file storage in production
-- Postgresql
-- Redis (for background jobs)
+- Postgresql 
+- Redis & Sidekiq for background jobs
 
 ## Notable Gems
 
-- prawn for pdf generation
-- pdf-inspector for testing PDF output
-- acts-as-taggable-array-on for fast tagging using postgresql array columns
-- mini-magick for in browser PDF previews
-- clearance for authentication
+- [prawn](https://github.com/prawnpdf/prawn) for pdf generation
+- [pdf-inspector](https://github.com/prawnpdf/pdf-inspector) for testing PDF output
+- [acts-as-taggable-array-on](https://github.com/tmiyamon/acts-as-taggable-array-on) for fast tagging using postgresql array columns
+- [mini-magick](https://github.com/minimagick/minimagick) for in browser PDF previews
+- [clearance](https://github.com/thoughtbot/clearance) for authentication
 
 ## Tests
+
+Currently sitting with 42 unit tests that ensure the basic functionality is robust.
+
+These tests include checking that content passed to the PDF actually appears once it
+is generated using pdf-inspector.
 
 ![Tests](readme/tests.png)
 
@@ -45,19 +49,20 @@ Hosted on Digital Ocean with Dokkku.
 
 ### The Template Design Pattern
 
-The app uses the this design pattern to create a base PDF with the correct fonts, font_sizes and page size `TemplatePdf.rb`.
+The app uses the template design pattern to create a base PDF with custom fonts, font_sizes and page size properties with the `TemplatePdfx` class.
 
-Then when generating an actual Journal PDF, this inherits the template and creates the actual page content.
+Then when generating an actual Journal PDF, this inherits the template and creates the actual page content with the `JournalTemplatePdf` class.
 
-This logic would extend nicely to make additional journal content in a modular way such as habit trackers or other optional extras.
+This logic would extend nicely to make additional journal content in a modular way such as habit trackers or other optional user selected extras.
 
-[Go here](pdfs/) to see how the PDFs are created using this.
+[Go here](pdfs/) to see how the PDFs are created using this pattern.
 
 ### Journal Content
 
-The structure of the app is made from a series of many-to-many relationships to the main "Journal" class.
+The structure of the app is built up from a series of many-to-many relationships to the main "Journal" class.
 
-As you can see in the database diagram. Each Journal has for example many "quotes" through the "journal_quotes" table.
+As you can see in the database diagram. Each Journal has for example many "quotes" through the "journal_quotes" table. 
+This is then repeated for each different type of content, like "prompts".
 
 The "quotes" table contains 5,000 quotes tagged with various intentions such as "gratitude". When the user selects
 gratitude as an intention, the correct number of tagged quotes are selected at random and associated with that users journal.
@@ -65,6 +70,8 @@ gratitude as an intention, the correct number of tagged quotes are selected at r
 You can see that logic below from the Quote model.
 
 ```ruby
+# can take multiple intentions and create a question block
+# associated to the given journal
 def self.block(intentions, journal)
   quotes_array = []
   intentions.each do |intention|
@@ -100,24 +107,24 @@ inside the journal model for exammple. This also reduces database queries a grea
 
 ```ruby
 def cached_quotes
-	Rails.cache.fetch([self, "journal_quotes"]) { quotes.to_a }
+Rails.cache.fetch([self, "journal_quotes"]) { quotes.to_a }
 end
 ```
 
 ### Background Jobs
 
-Because creating the 183 page PDF can take some time, especially in prodcution when saving the Amazon S3,
-this is passed over to a background job using Sidekiq and Redis.
+As creating a 183 page PDF can take some time, especially in prodcution when saving to Amazon S3,
+this work is passed over to a background job using Sidekiq and Redis.
 
-During this job, here is a summary of what happens.
+During this job, this is what happens step-by-step.
 
 1. Journal is found and the processing column is set to true
 2. All journal content is gathered and associated with the current Journal
-3. The Journal object is passed to JournalTemplatePdf class for PDF creation
+3. The Journal object is passed to the JournalTemplatePdf class for PDF creation
 4. The resulting PDF is saved temporarily to the local filesystem
-5. The temporary PDF has a preview 2-page spread image created and also stored temporarily
-6. The temporary PDF and preview image are uploaded to Amazon S3 (temp files also deleted)
-7. Journal object is set to processing: false and saved
+5. The temporary PDF has a preview 4-page spread created and also stored temporarily
+6. The temporary PDF and preview image are uploaded to Amazon S3 (temp files then deleted)
+7. Journal is set to processing: false and saved
 
 This process takes around 5.5 seconds.
 
@@ -192,11 +199,22 @@ end
 
 ### Polling Background Job Completion
 
-One of the difficulties of handling the PDF creating in a background job was handling the UX of that.
-I chose to create a simple JQuery Poll to achieve this.
+One of the difficulties of handling PDF creation in a background job was user experience.
 
-This poll will try 4 times, each time increasing the timer by 1 second. For exampple 1sec, 2sec etc
-and finally after the 4th failed attempt it will show a timeout alert.
+I chose to create a simple JQuery Poll to update the DOM based on completion of the job. This is
+known by reading the processing boolean attribute via the dailypager.com/journals/{journal_id}/status JSON endpoint. 
+Created in the `journals_controller.rb`.
+
+```ruby
+def status
+@journal = Journal.find(params[:journal_id])
+render json: { id: @journal.id, processing: @journal.processing }
+end
+```
+
+This poll will try 4 times to access this endpoint looking for processing: false,  each time increasing the timer by 1 second. 
+
+For exampple 1sec, 2sec etc and finally after the 4th failed attempt it will show a timeout alert.
 
 Also during this time the user is given some relevant loading messages. You can see all of this logic inside
 the packs folder [here](app/javascript/packs/sharpening-pencils.js)
@@ -209,7 +227,6 @@ alert("timeout");
 
 
 $(document).on("turbolinks:load", function() {
-// $(document).ready(function() {
 var poll;
 var attempts = 0;
 poll = function(div, callback) {
@@ -267,6 +284,31 @@ of the PDF and turns it into a 4 page spread, with borders and some optimisation
 
   end
 ```
+
+# Planning
+
+## Mockups
+
+Here you can see how I envisioned the app during the planning stage. Compared to below for recent screenshots.
+
+### 1. Home 
+![Home](readme/1-home.png)
+
+### 2. Create a Journal
+![Create a Journal](readme/2-create_a_journal.png)
+
+### 3. Preview Journal
+![Journal Preview](readme/3-journal_preview.png)
+
+## Screenshots
+
+You can see here the app has changed a little since the mockups. Most notably the selection
+of intentions is handled using [selectize](https://selectize.github.io/selectize.js/) which
+makes for much nicer user experience. The available options are based on a call to all unique tagged
+content. Then limited to 5 choices.
+
+![Screenshots](readme/screenshots.png)
+
 
 ## User Stories
  
