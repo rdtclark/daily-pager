@@ -304,8 +304,20 @@ Here you can see how I envisioned the app during the planning stage. Compared to
 
 You can see here the app has changed a little since the mockups. Most notably the selection
 of intentions is handled using [selectize](https://selectize.github.io/selectize.js/) which
-makes for much nicer user experience. The available options are based on a call to all unique tagged
-content. Then limited to 5 choices.
+makes for a much nicer user experience. The available options are based on a call to all unique tagged
+content `Question.all_intentions`. Then limited to 5 choices using selectize itself.
+
+```javascript
+import 'selectize/dist/js/selectize.min.js';
+
+$(function(){
+	$("#select-intentions").selectize({
+		maxItems: 5,
+		delimiter: ',',
+		allowEmptyOption: true
+	});
+});
+```
 
 ![Screenshots](readme/screenshots.png)
 
