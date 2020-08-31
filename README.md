@@ -14,7 +14,7 @@ Including relevant quotes, challenges, questions and prompts.
 https://www.dailypager.com
 Login with: demo@example.com / hello123
 
-Hosted on a Digital Ocean VPS using [Dokkku](http://dokku.viewdocs.io/dokku/).
+Hosted on a Linode VPS using [Dokkku](http://dokku.viewdocs.io/dokku/).
 
 ## Technology Used
 
