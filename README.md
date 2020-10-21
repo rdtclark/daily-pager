@@ -19,9 +19,10 @@ Hosted on a Digital Ocean VPS using [Dokkku](http://dokku.viewdocs.io/dokku/).
 ## Technology Used
 
 - Ruby on Rails 6
+- Ruby compiled and deployed with [jemalloc](https://bit.ly/3oddFEk) for reduced memory usage on low ram VPS 
 - AWS S3 for PDF file storage in production
 - Postgresql 
-- Redis & Sidekiq for background jobs
+- Redis with [Sidekiq](https://github.com/mperham/sidekiq) for pdf generation in background jobs
 
 ## Notable Gems
 
