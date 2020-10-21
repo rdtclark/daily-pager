@@ -12,7 +12,6 @@ Including relevant quotes, challenges, questions and prompts.
 ## Live version
 
 https://dailypager.com
-Login with: demo@example.com / hello123
 
 Hosted on a Linode VPS using [Dokkku](http://dokku.viewdocs.io/dokku/).
 
