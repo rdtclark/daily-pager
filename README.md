@@ -9,12 +9,6 @@ Including relevant quotes, challenges, questions and prompts.
 
 ![Intentions](readme/intentions_selector.gif)
 
-## Live version
-
-https://dailypager.com
-
-Hosted on a Linode VPS using [Dokkku](http://dokku.viewdocs.io/dokku/).
-
 ## Technology Used
 
 - Ruby on Rails 6
